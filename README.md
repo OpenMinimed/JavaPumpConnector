@@ -1,3 +1,4 @@
 # JavaPumpConnector
 
-TODO: rename from me.palmarci to org.openminimed
+### TODO:
+- [x] rename from me.palmarci to org.openminimed 
