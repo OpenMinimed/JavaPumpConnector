@@ -3,13 +3,13 @@ plugins {
 }
 
 android {
-    namespace = "me.palmarci.pumpconnector"
+    namespace = "org.openminimed.pumpconnector"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "me.palmarci.pumpconnector"
+        applicationId = "org.openminimed.pumpconnector"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

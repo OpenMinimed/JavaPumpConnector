@@ -1,4 +1,4 @@
-package me.palmarci.pumpconnector;
+package org.openminimed.pumpconnector;
 
 import android.content.Context;
 
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("me.palmarci.pumpconnector", appContext.getPackageName());
+        assertEquals("org.openminimed.pumpconnector", appContext.getPackageName());
     }
 }
