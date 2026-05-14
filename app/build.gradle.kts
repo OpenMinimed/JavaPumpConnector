@@ -34,6 +34,8 @@ android {
 }
 
 dependencies {
+    implementation("org.openminimed:lib:0.1.0-SNAPSHOT")
+
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
