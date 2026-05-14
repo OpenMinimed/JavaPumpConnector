@@ -58,6 +58,8 @@ public class BlePeripheralDevice {
     private BluetoothLeAdvertiser advertiser;
     private BluetoothGattServer gattServer;
     private Queue<BluetoothGattService> addServiceQueue;
+    private BluetoothGattCharacteristic sakeCharacteristic;
+    private final SakeHandler sakeHandler = new SakeHandler();
 
     // Permission check method
     public boolean hasBluetoothPermissions() {
@@ -351,6 +353,8 @@ public class BlePeripheralDevice {
 
         service.addCharacteristic(sakeChar);
 
+        this.sakeCharacteristic = sakeChar;
+
         return service;
     }
 
@@ -366,6 +370,7 @@ public class BlePeripheralDevice {
             Log.d(TAG, "All services added successfully");
             Log.d(TAG, "Device Info Service UUID: " + DEVICE_INFO_SERVICE_UUID);
             Log.d(TAG, "SAKE Service UUID: " + SAKE_SERVICE_UUID);
+            sakeHandler.attach(gattServer, sakeCharacteristic);
         } else {
             BluetoothGattService firstItem = addServiceQueue.poll();
             if (firstItem != null) {
@@ -495,6 +500,10 @@ public class BlePeripheralDevice {
             Log.d(TAG, "Value: " + bytesToHex(value));
             Log.d(TAG, "Prepared write: " + preparedWrite + ", Response needed: " + responseNeeded);
 
+            if (characteristic.getUuid().equals(SAKE_CHARACTERISTIC_UUID)) {
+                sakeHandler.onWrite(value);
+            }
+
             if (responseNeeded) {
                 try {
                     gattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value);
@@ -544,6 +553,16 @@ public class BlePeripheralDevice {
                 }
                 if (cccValue == 0x0000) {
                     Log.i(TAG, "Client unsubscribed from notifications/indications");
+                }
+
+                boolean isSakeChar = descriptor.getCharacteristic() != null
+                        && SAKE_CHARACTERISTIC_UUID.equals(descriptor.getCharacteristic().getUuid());
+                if (isSakeChar) {
+                    if ((cccValue & 0x0001) != 0) {
+                        sakeHandler.onNotificationsEnabled(device);
+                    } else if (cccValue == 0x0000) {
+                        sakeHandler.onNotificationsDisabled();
+                    }
                 }
             }
 
