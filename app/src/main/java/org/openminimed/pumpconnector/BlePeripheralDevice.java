@@ -67,6 +67,7 @@ public class BlePeripheralDevice {
     private BluetoothGattServer gattServer;
     private Queue<BluetoothGattService> addServiceQueue;
     private BluetoothGattCharacteristic sakeCharacteristic;
+    private AdvertiseCallback advertiseCallback;
     private final SakeHandler sakeHandler = new SakeHandler();
 
     // Permission check method
@@ -178,7 +179,7 @@ public class BlePeripheralDevice {
 
         AdvertiseData data = createAdvertisementData();
 
-        AdvertiseCallback callback =
+        advertiseCallback =
                 new AdvertiseCallback() {
                     @Override
                     public void onStartSuccess(AdvertiseSettings settingsInEffect) {
@@ -192,7 +193,7 @@ public class BlePeripheralDevice {
                     }
                 };
 
-        advertiser.startAdvertising(settings, data, callback);
+        advertiser.startAdvertising(settings, data, advertiseCallback);
         Log.d(TAG, "Advertising started");
     }
 
@@ -409,19 +410,17 @@ public class BlePeripheralDevice {
     }
 
     private void stopAdvertising() {
-        if (advertiser != null) {
-            try {
-                advertiser.stopAdvertising(
-                        new AdvertiseCallback() {
-                            @Override
-                            public void onStartSuccess(AdvertiseSettings settingsInEffect) {
-                                // Not expected for stop
-                            }
-                        });
-                Log.d(TAG, "Advertising stopped");
-            } catch (SecurityException e) {
-                Log.e(TAG, "Security exception when stopping advertising: " + e.getMessage());
-            }
+        if (advertiser == null || advertiseCallback == null) {
+            return;
+        }
+        try {
+            // Must pass the same callback instance startAdvertising() used.
+            advertiser.stopAdvertising(advertiseCallback);
+            Log.d(TAG, "Advertising stopped");
+        } catch (SecurityException e) {
+            Log.e(TAG, "Security exception when stopping advertising: " + e.getMessage());
+        } finally {
+            advertiseCallback = null;
         }
     }
 
@@ -503,7 +502,11 @@ public class BlePeripheralDevice {
                     Log.d(TAG, "Request ID: " + requestId + ", Offset: " + offset);
 
                     try {
-                        byte[] toSend = "DummyData".getBytes(StandardCharsets.UTF_8);
+                        byte[] stored = characteristic.getValue();
+                        byte[] toSend =
+                                stored != null
+                                        ? stored
+                                        : "DummyData".getBytes(StandardCharsets.UTF_8);
 
                         if (uuid.equals(SOFTWARE_REVISION_UUID)) {
                             toSend =
@@ -625,7 +628,26 @@ public class BlePeripheralDevice {
                     Log.d(TAG, "Value: " + bytesToHex(value));
 
                     if (descriptor.getUuid().equals(CCC_DESCRIPTOR_UUID)) {
-                        int cccValue = (value[1] << 8) | (value[0] & 0xFF);
+                        if (value == null || value.length < 2) {
+                            Log.w(TAG, "CCC write with malformed value, ignoring");
+                            if (responseNeeded) {
+                                try {
+                                    gattServer.sendResponse(
+                                            device,
+                                            requestId,
+                                            BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH,
+                                            offset,
+                                            null);
+                                } catch (SecurityException e) {
+                                    Log.e(
+                                            TAG,
+                                            "Security exception in CCC malformed-value response: "
+                                                    + e.getMessage());
+                                }
+                            }
+                            return;
+                        }
+                        int cccValue = ((value[1] & 0xFF) << 8) | (value[0] & 0xFF);
 
                         if ((cccValue & 0x0001) != 0) {
                             Log.i(TAG, "Client subscribed to NOTIFICATIONS");

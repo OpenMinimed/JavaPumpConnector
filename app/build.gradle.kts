@@ -50,6 +50,9 @@ spotless {
 }
 
 dependencies {
+    // Placeholder coordinates for the JavaSake :lib subproject. Gradle substitutes the local
+    // composite build (declared in settings.gradle.kts) at configuration time, so this never
+    // actually resolves against a Maven repository.
     implementation("org.openminimed:lib:0.1.0-SNAPSHOT")
 
     implementation(libs.appcompat)
