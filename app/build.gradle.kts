@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.spotless)
 }
 
 android {
@@ -30,6 +31,21 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    lint {
+        baseline = file("lint-baseline.xml")
+        warningsAsErrors = false
+    }
+}
+
+spotless {
+    java {
+        target("src/**/*.java")
+        googleJavaFormat(libs.versions.googleJavaFormat.get()).aosp()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
     }
 }
 

@@ -7,27 +7,26 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
-
 import org.openminimed.sake.Constants;
 import org.openminimed.sake.SakeServer;
 
 /**
  * BLE glue layer for the SAKE handshake.
  *
- * <p>Owns a {@link SakeServer} pinned to the extracted-from-pump key database
- * and translates between BLE GATT server events and handshake step calls.
- * All SAKE work is serialized onto a dedicated {@link HandlerThread} so the
- * binder thread that fires BLE callbacks is never blocked by crypto work.</p>
+ * <p>Owns a {@link SakeServer} pinned to the extracted-from-pump key database and translates
+ * between BLE GATT server events and handshake step calls. All SAKE work is serialized onto a
+ * dedicated {@link HandlerThread} so the binder thread that fires BLE callbacks is never blocked by
+ * crypto work.
  *
- * <p>Wire protocol the pump expects, in order:</p>
+ * <p>Wire protocol the pump expects, in order:
+ *
  * <ol>
- *   <li>Pump subscribes to notifications on the SAKE characteristic.
- *       Handler emits twenty zero bytes as a wake-up notification.</li>
- *   <li>Pump writes its own twenty zero bytes as the matching wake-up.
- *       Handler feeds that to {@link SakeServer#handshake(byte[])}, gets
- *       msg0 back, notifies it to the pump.</li>
- *   <li>Pump writes msg1, msg3, msg5 in turn. Handler responds with
- *       msg2, msg4, and finally completes at stage 6.</li>
+ *   <li>Pump subscribes to notifications on the SAKE characteristic. Handler emits twenty zero
+ *       bytes as a wake-up notification.
+ *   <li>Pump writes its own twenty zero bytes as the matching wake-up. Handler feeds that to {@link
+ *       SakeServer#handshake(byte[])}, gets msg0 back, notifies it to the pump.
+ *   <li>Pump writes msg1, msg3, msg5 in turn. Handler responds with msg2, msg4, and finally
+ *       completes at stage 6.
  * </ol>
  */
 public final class SakeHandler {
@@ -53,64 +52,68 @@ public final class SakeHandler {
     }
 
     /**
-     * Bind the GATT server and characteristic the handler will use to send
-     * SAKE notifications back to the pump.
+     * Bind the GATT server and characteristic the handler will use to send SAKE notifications back
+     * to the pump.
      */
-    public void attach(BluetoothGattServer gattServer,
-                       BluetoothGattCharacteristic characteristic) {
+    public void attach(BluetoothGattServer gattServer, BluetoothGattCharacteristic characteristic) {
         this.gattServer = gattServer;
         this.characteristic = characteristic;
     }
 
     /**
-     * Called from the GATT server callback when the pump subscribes to
-     * notifications on the SAKE characteristic. Emits a 20-byte wake-up frame.
+     * Called from the GATT server callback when the pump subscribes to notifications on the SAKE
+     * characteristic. Emits a 20-byte wake-up frame.
      */
     public void onNotificationsEnabled(BluetoothDevice device) {
-        handler.post(() -> {
-            peer = device;
-            if (pumpSubscribed) {
-                return;
-            }
-            pumpSubscribed = true;
-            Log.i(TAG, "Pump subscribed to SAKE notifications; sending wake-up");
-            sendNotification(WAKE_UP.clone());
-        });
+        handler.post(
+                () -> {
+                    peer = device;
+                    if (pumpSubscribed) {
+                        return;
+                    }
+                    pumpSubscribed = true;
+                    Log.i(TAG, "Pump subscribed to SAKE notifications; sending wake-up");
+                    sendNotification(WAKE_UP.clone());
+                });
     }
 
     /** Called from the GATT server callback when the pump unsubscribes. */
     public void onNotificationsDisabled() {
-        handler.post(() -> {
-            pumpSubscribed = false;
-            Log.w(TAG, "Pump unsubscribed from SAKE notifications");
-        });
+        handler.post(
+                () -> {
+                    pumpSubscribed = false;
+                    Log.w(TAG, "Pump unsubscribed from SAKE notifications");
+                });
     }
 
     /**
-     * Called from the GATT server callback for every write on the SAKE
-     * characteristic. Drives the next handshake step and emits the response.
+     * Called from the GATT server callback for every write on the SAKE characteristic. Drives the
+     * next handshake step and emits the response.
      */
     public void onWrite(byte[] value) {
         byte[] copy = value.clone();
-        handler.post(() -> {
-            if (server.getStage() == HANDSHAKE_COMPLETE_STAGE) {
-                Log.w(TAG, "Ignoring write after handshake completion");
-                return;
-            }
-            try {
-                byte[] response = server.handshake(copy);
-                if (response != null) {
-                    sendNotification(response);
-                } else {
-                    Log.i(TAG, "SAKE handshake complete");
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "SAKE handshake failed", e);
-            }
-        });
+        handler.post(
+                () -> {
+                    if (server.getStage() == HANDSHAKE_COMPLETE_STAGE) {
+                        Log.w(TAG, "Ignoring write after handshake completion");
+                        return;
+                    }
+                    try {
+                        byte[] response = server.handshake(copy);
+                        if (response != null) {
+                            sendNotification(response);
+                        } else {
+                            Log.i(TAG, "SAKE handshake complete");
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "SAKE handshake failed", e);
+                    }
+                });
     }
 
-    /** @return true once the handshake has reached stage 6. */
+    /**
+     * @return true once the handshake has reached stage 6.
+     */
     public boolean isHandshakeComplete() {
         return server.getStage() == HANDSHAKE_COMPLETE_STAGE;
     }
