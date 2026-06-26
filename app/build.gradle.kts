@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.spotless)
 }
 
 android {
@@ -31,9 +32,29 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+    lint {
+        baseline = file("lint-baseline.xml")
+        warningsAsErrors = false
+    }
+}
+
+spotless {
+    java {
+        target("src/**/*.java")
+        googleJavaFormat(libs.versions.googleJavaFormat.get()).aosp()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
 }
 
 dependencies {
+    // Placeholder coordinates for the JavaSake :lib subproject. Gradle substitutes the local
+    // composite build (declared in settings.gradle.kts) at configuration time, so this never
+    // actually resolves against a Maven repository.
+    implementation("org.openminimed:lib:0.1.0-SNAPSHOT")
+
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
