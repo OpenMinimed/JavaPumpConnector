@@ -1,6 +1,8 @@
 # JavaPumpConnector
 
-A skeleton Android app for communicating with Medtronic insulin pumps via the SAKE protocol.
+A skeleton Android app for testing against Medtronic insulin pumps via the SAKE protocol.
+
+If you are interested in a real mobile app, I suggest to look at [GlycemicGPT](https://github.com/GlycemicGPT/GlycemicGPT).
 
 ## Prerequisites
 
