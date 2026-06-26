@@ -1,0 +1,3 @@
+[submodule "JavaSake"]
+	path = JavaSake
+	url = https://github.com/OpenMinimed/JavaSake.git

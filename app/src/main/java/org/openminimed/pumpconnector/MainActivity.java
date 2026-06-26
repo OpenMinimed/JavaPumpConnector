@@ -1,17 +1,14 @@
 package org.openminimed.pumpconnector;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import android.view.View;
-import android.widget.Button;
-import android.widget.Toast;
-
-import org.openminimed.pumpconnector.BlePeripheralDevice;
-
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -22,17 +19,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        ViewCompat.setOnApplyWindowInsetsListener(
+                findViewById(R.id.main),
+                (v, insets) -> {
+                    Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                    v.setPadding(
+                            systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+                    return insets;
+                });
 
         this.ble = new BlePeripheralDevice(MainActivity.this);
 
         Button btn = (Button) findViewById(R.id.start_gatt);
         btn.setOnClickListener(MainActivity.this);
-
     }
 
     @Override
@@ -45,7 +44,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             this.ble.start();
             Toast.makeText(this, "Peripheral started!", Toast.LENGTH_SHORT).show();
         }
-
     }
-
 }

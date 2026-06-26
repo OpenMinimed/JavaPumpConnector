@@ -21,3 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "PumpConnector"
 include(":app")
+
+includeBuild("JavaSake")
