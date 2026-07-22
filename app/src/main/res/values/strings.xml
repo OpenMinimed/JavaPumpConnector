@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">PumpConnector</string>
     <string name="start_gatt_peripheral">Start GATT peripheral</string>
+    <string name="xxxxxx_hint">xxxxxx</string>
 </resources>

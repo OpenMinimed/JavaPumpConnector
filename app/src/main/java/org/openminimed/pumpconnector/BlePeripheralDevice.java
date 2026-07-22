@@ -92,7 +92,7 @@ public class BlePeripheralDevice {
 
     // Manufacturer data constants
     private static final int MANUFACTURER_ID = 0x01f9; // reversed
-    private static final String MOBILE_NAME = "Mobile 000001";
+    public String MOBILE_NAME = "Mobile 000001";
     private static final String FAKE_APP_VER = "2.9.0 f1093d1";
 
     public BlePeripheralDevice(Context context) {
