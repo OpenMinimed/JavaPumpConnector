@@ -1,6 +1,7 @@
 package org.openminimed.pumpconnector;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -52,11 +53,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (this.ble.hasBluetoothPermissions()) {
             this.ble.stop();
 
+
+
             String MOBILE_NAME;
+            if (!txt.getText().toString().isBlank()) {
 
-            MOBILE_NAME = "Mobile " + (txt.getText().toString() + "      ").substring(0, 6);
+                MOBILE_NAME = "Mobile " + (txt.getText().toString() + "       ").substring(0, 7);
+                ble.MOBILE_NAME = MOBILE_NAME;
 
-            ble.MOBILE_NAME = MOBILE_NAME;
+                Log.e("MobileNameChanger", "Mobile name changed to : " + MOBILE_NAME);
+            }
+
+            else {Log.e("MobileNameChanger", "Did not changed mobile name because the name was blank");}
+
+
 
             this.ble.start();
             Toast.makeText(this, "Peripheral started!", Toast.LENGTH_SHORT).show();
