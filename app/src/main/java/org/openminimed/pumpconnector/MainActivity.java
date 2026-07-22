@@ -56,10 +56,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
             String MOBILE_NAME;
-            if (!txt.getText().toString().isBlank()) {
+            if (!txt.getText().toString().isBlank()) { // Check if the text is not blank
 
-                MOBILE_NAME = "Mobile " + (txt.getText().toString() + "       ").substring(0, 7);
-                ble.MOBILE_NAME = MOBILE_NAME;
+                MOBILE_NAME = "Mobile " + (txt.getText().toString() + "       ").substring(0, 7); // if not blank, add 7 space and resize to 7 to make sure there is 7 character in total
+                ble.MOBILE_NAME = MOBILE_NAME; // Change the Mobile name for the pomp to the name indicated
 
                 Log.e("MobileNameChanger", "Mobile name changed to : " + MOBILE_NAME);
             }
